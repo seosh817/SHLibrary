@@ -8,7 +8,7 @@ sealed interface ResultState<out T> {
 
     data class Success<out T>(val data: T) : ResultState<T>
 
-    sealed class Failure<out T>() : ResultState<Nothing> {
+    sealed class Failure<out T> : ResultState<Nothing> {
 
         data class Error(val code: Int, val message: String?) : Failure<Nothing>()
 

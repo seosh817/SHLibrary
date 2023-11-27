@@ -3,11 +3,21 @@ package com.seosh817.common.result.extension
 import com.seosh817.common.network.exception.NetworkException
 import com.seosh817.common.result.ResultState
 
-inline fun <reified T, R> ResultState<T>.map(transform: (T) -> R): ResultState<R> {
+inline fun <reified T, R> ResultState<T>.map(
+    transform: (T) -> R
+): ResultState<R> {
     return when (this) {
         is ResultState.Success -> ResultState.Success(transform(this.data))
         is ResultState.Failure<*> -> this
     }
+}
+
+inline fun <reified T, R> ResultState<T>.map(
+    success: (ResultState.Success<T>) -> R,
+    failure: (ResultState.Failure<*>) -> R
+): R = when (this) {
+    is ResultState.Success -> success(this)
+    is ResultState.Failure<*> -> failure(this)
 }
 
 suspend inline fun <T> ResultState<T>.onSuccess(
