@@ -2,6 +2,10 @@ package com.seosh817.common.result.extension
 
 import com.seosh817.common.network.exception.NetworkException
 import com.seosh817.common.result.ResultState
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 
 inline fun <reified T, R> ResultState<T>.map(
     transform: (T) -> R
@@ -76,7 +80,13 @@ fun <T> ResultState<T>.getOrNull(): T? {
 fun <T> ResultState<T>.getOrThrow(): T {
     when (this) {
         is ResultState.Success -> return data
-        is ResultState.Failure.Error -> throw NetworkException(code, message)
-        is ResultState.Failure.Exception -> throw e
+        is ResultState.Failure<*> -> throw e
     }
+}
+
+fun <T> fetchDataToFlow(
+    fetchData: suspend () -> ResultState<T>
+): Flow<T> = flow {
+    val result = fetchData.invoke().getOrThrow()
+    emit(result)
 }
