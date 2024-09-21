@@ -1,14 +1,26 @@
+/*
+ * Copyright 2024 seosh817 (Seunghwan Seo)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.seosh817.common.result.extension
 
-import com.seosh817.common.network.exception.NetworkException
 import com.seosh817.common.result.ResultState
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 
 inline fun <reified T, R> ResultState<T>.map(
-    transform: (T) -> R
+    transform: (T) -> R,
 ): ResultState<R> {
     return when (this) {
         is ResultState.Success -> ResultState.Success(transform(this.data))
@@ -18,7 +30,7 @@ inline fun <reified T, R> ResultState<T>.map(
 
 inline fun <reified T, R> ResultState<T>.map(
     success: (ResultState.Success<T>) -> R,
-    failure: (ResultState.Failure<*>) -> R
+    failure: (ResultState.Failure<*>) -> R,
 ): R = when (this) {
     is ResultState.Success -> success(this)
     is ResultState.Failure<*> -> failure(this)
@@ -52,7 +64,7 @@ suspend inline fun <T> ResultState<T>.onErrorThen(
 }
 
 suspend inline fun <T> ResultState<T>.switchMap(
-    crossinline onResult: suspend ResultState.Success<T>.() -> ResultState<T>
+    crossinline onResult: suspend ResultState.Success<T>.() -> ResultState<T>,
 ): ResultState<T> {
     if (this is ResultState.Success) {
         return onResult(this)
@@ -61,7 +73,7 @@ suspend inline fun <T> ResultState<T>.switchMap(
 }
 
 suspend inline fun <R> runCatchingResult(
-    crossinline block: suspend () -> R
+    crossinline block: suspend () -> R,
 ): ResultState<R> {
     return try {
         ResultState.Success(block())
@@ -85,7 +97,7 @@ fun <T> ResultState<T>.getOrThrow(): T {
 }
 
 fun <T> fetchDataToFlow(
-    fetchData: suspend () -> ResultState<T>
+    fetchData: suspend () -> ResultState<T>,
 ): Flow<T> = flow {
     val result = fetchData.invoke().getOrThrow()
     emit(result)
